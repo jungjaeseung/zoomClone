@@ -1,5 +1,5 @@
 import http from "http";
-import WebSocket from "ws";
+import { Server } from "socket.io";
 import express from "express";
 
 const app = express();
@@ -12,31 +12,30 @@ app.get("/*", (_, res) => res.redirect("/"));
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const httpServer = http.createServer(app);
+const io = new Server(httpServer);
 
-const sockets = [];
-
-wss.on("connection", (socket) => {
-  sockets.push(socket);
+io.on("connection", (socket) => {
   socket["nickname"] = "Anonymous";
-  console.log("WebSocket connected to Client");
-  socket.on("close", () => console.log("WebSocket disconnected from Client"));
-  socket.on("message", (message) => {
-    const parsedMsg = JSON.parse(message.toString());
-    switch (parsedMsg.type) {
-      case "new_message":
-        sockets.forEach((aSocket) =>
-          aSocket.send(`${socket.nickname}: ${parsedMsg.payload}`)
-        );
-        break;
-      case "nickname":
-        socket["nickname"] = parsedMsg.payload;
-        break;
-      default:
-        return;
-    }
+  socket.onAny((event) => {
+    console.log(`Socket Event:${event}`);
   });
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) =>
+      socket.to(room).emit("bye", socket.nickname)
+    );
+  });
+  socket.on("enter_room", (roomName, nickname, done) => {
+    socket["nickname"] = nickname;
+    socket.join(roomName);
+    done();
+    socket.to(roomName).emit("welcome", socket.nickname);
+  });
+  socket.on("new_message", (message, room, done) => {
+    socket.to(room).emit("new_message", `${socket.nickname}: ${message}`);
+    done();
+  });
+  socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
 });
 
-server.listen(3000, handleListen);
+httpServer.listen(3000, handleListen);

@@ -9,11 +9,19 @@ html(lang="en")
         header 
             h1 Zoom Clone
         main
-            form#nick
-                input(type="text", placeholder="Choose a nickname", required)
-                button Save
-            ul
-            form#message
-                input(type="text", placeholder="Write a message", required)
-                button Send
+            div#welcome
+                form
+                    input#nameInput(placeholder="name", required, type="text")
+                    input#roomInput(placeholder="room name", required, type="text")
+                    button Enter Room
+            div#room
+                h3
+                ul 
+                form#msg
+                    input(placeholder="message", required, type="text")
+                    button Send
+                form#name
+                    input(placeholder="name", required, type="text")
+                    button Save
+        script(src="/socket.io/socket.io.js") 
         script(src="public/app.js") 
