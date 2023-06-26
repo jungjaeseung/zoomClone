@@ -9,8 +9,11 @@ html(lang="en")
         header 
             h1 Zoom Clone
         main
+            form#nick
+                input(type="text", placeholder="Choose a nickname", required)
+                button Save
             ul
-            form
+            form#message
                 input(type="text", placeholder="Write a message", required)
                 button Send
         script(src="public/app.js") 
