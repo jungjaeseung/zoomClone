@@ -1,6 +1,7 @@
 import http from "http";
 import { Server } from "socket.io";
 import express from "express";
+import { instrument } from "@socket.io/admin-ui";
 
 const app = express();
 
@@ -13,7 +14,35 @@ app.get("/*", (_, res) => res.redirect("/"));
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
 const httpServer = http.createServer(app);
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+  cors: {
+    origin: ["https://admin.socket.io"],
+    credentials: true,
+  },
+});
+
+instrument(io, {
+  auth: false,
+});
+
+function getPublicRooms() {
+  const {
+    sockets: {
+      adapter: { sids, rooms },
+    },
+  } = io;
+  const publicRooms = [];
+  rooms.forEach((_, key) => {
+    if (sids.get(key) === undefined) {
+      publicRooms.push(key);
+    }
+  });
+  return publicRooms;
+}
+
+function countRoomMember(roomName) {
+  return io.sockets.adapter.rooms.get(roomName)?.size;
+}
 
 io.on("connection", (socket) => {
   socket["nickname"] = "Anonymous";
@@ -22,14 +51,23 @@ io.on("connection", (socket) => {
   });
   socket.on("disconnecting", () => {
     socket.rooms.forEach((room) =>
-      socket.to(room).emit("bye", socket.nickname)
+      socket.to(room).emit("bye", socket.nickname, countRoomMember(room) - 1)
     );
   });
+  socket.on("disconnect", () => {
+    io.sockets.emit("room_change", getPublicRooms());
+  });
   socket.on("enter_room", (roomName, nickname, done) => {
-    socket["nickname"] = nickname;
+    if (nickname !== "") {
+      socket["nickname"] = nickname;
+    }
     socket.join(roomName);
-    done();
-    socket.to(roomName).emit("welcome", socket.nickname);
+
+    socket
+      .to(roomName)
+      .emit("welcome", socket.nickname, countRoomMember(roomName));
+    io.sockets.emit("room_change", getPublicRooms());
+    done(countRoomMember(roomName));
   });
   socket.on("new_message", (message, room, done) => {
     socket.to(room).emit("new_message", `${socket.nickname}: ${message}`);
