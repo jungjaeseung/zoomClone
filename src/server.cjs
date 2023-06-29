@@ -73,7 +73,11 @@ io.on("connection", (socket) => {
     socket.to(room).emit("new_message", `${socket.nickname}: ${message}`);
     done();
   });
-  socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
+  socket.on("nickname", (nickname, roomName) => {
+    const previousNickname = socket["nickname"];
+    socket["nickname"] = nickname;
+    socket.to(roomName).emit("nickname", previousNickname, nickname);
+  });
 });
 
 httpServer.listen(3000, handleListen);
