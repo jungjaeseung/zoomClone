@@ -1,14 +1,28 @@
 doctype html
-html(lang="en")
+html(lang="ko")
     head
         meta(charset="UTF-8")
         meta(name="viewport", content="width=device-width, initial-scale=1.0")
-        title Zoom
+        title Zoom Clone
         link(rel="stylesheet", href="https://unpkg.com/mvp.css")
     body 
         header 
             h1 Zoom Clone
         main
+            div#myStream
+                video#myFace(autoplay, playsinline, width="400", height="400")
+                div
+                    button#mute Unmute
+                    button#camera Cam On
+                    button#rotateY Mirror
+                div
+                    select#cameras
+                        option(value="device") Face Camera
+                    //- select#speakers
+                    //-    option(value="device") Speaker
+                    //- select#mics
+                    //-    option(value="device") Mic
+
             div#welcome
                 form
                     input#nameInput(placeholder="name", type="text")
@@ -26,5 +40,6 @@ html(lang="en")
                     input(placeholder="name", required, type="text")
                     button Save
         script(src="/socket.io/socket.io.js")
-        script(type="module", src="public/app.js") 
+        
         script(type="module", src="public/chat.js")
+        script(type="module", src="public/videocall.js") 
