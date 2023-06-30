@@ -3,6 +3,7 @@ import { Server } from "socket.io";
 import express from "express";
 import { instrument } from "@socket.io/admin-ui";
 import cors from "cors";
+import * as dotenv from "dotenv";
 
 dotenv.config();
 
@@ -51,6 +52,7 @@ function countRoomMember(roomName) {
 
 io.on("connection", (socket) => {
   socket["nickname"] = "Anonymous";
+  io.sockets.emit("room_change", getPublicRooms());
   socket.onAny((event) => {
     console.log(`Socket Event:${event}`);
   });
