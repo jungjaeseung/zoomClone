@@ -2,6 +2,9 @@ import http from "http";
 import { Server } from "socket.io";
 import express from "express";
 import { instrument } from "@socket.io/admin-ui";
+import cors from "cors";
+
+dotenv.config();
 
 const app = express();
 
@@ -16,10 +19,12 @@ const handleListen = () => console.log(`Listening on http://localhost:3000`);
 const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: ["https://admin.socket.io"],
+    origin: ["https://admin.socket.io", process.env.MY_LOCAL_IP],
     credentials: true,
   },
 });
+
+app.use(cors());
 
 instrument(io, {
   auth: false,
@@ -66,6 +71,7 @@ io.on("connection", (socket) => {
     socket
       .to(roomName)
       .emit("welcome", socket.nickname, countRoomMember(roomName));
+    socket.to(roomName).emit("camconnect");
     io.sockets.emit("room_change", getPublicRooms());
     done(countRoomMember(roomName));
   });
@@ -77,6 +83,18 @@ io.on("connection", (socket) => {
     const previousNickname = socket["nickname"];
     socket["nickname"] = nickname;
     socket.to(roomName).emit("nickname", previousNickname, nickname);
+  });
+  socket.on("offer", (offer, roomName) => {
+    socket.to(roomName).emit("offer", offer);
+  });
+  socket.on("answer", (answer, roomName) => {
+    socket.to(roomName).emit("answer", answer);
+  });
+  socket.on("ice", (ice, roomName) => {
+    socket.to(roomName).emit("ice", ice);
+  });
+  socket.on("rotate", (roomName) => {
+    socket.to(roomName).emit("rotate");
   });
 });
 

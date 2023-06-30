@@ -1,7 +1,13 @@
-import { socket, welcomeDiv, room, form } from "./app.js";
+import { socket, welcomeDiv, room, form, callDiv } from "./app.js";
+import { getMedia, makeConnection } from "./videocall.js";
 let roomName;
 
 room.hidden = true;
+let peerRotated = false;
+
+export function getRoomName() {
+  return roomName;
+}
 
 function addMessage(message) {
   const ul = room.querySelector("ul");
@@ -31,6 +37,7 @@ function handleNicknameSubmit(e) {
 function showRoom(newCount) {
   welcomeDiv.hidden = true;
   room.hidden = false;
+  callDiv.hidden = false;
   const h3 = room.querySelector("h3");
   h3.innerText = `Room: ${roomName} (${newCount})`;
   const msgForm = room.querySelector("#msg");
@@ -39,8 +46,14 @@ function showRoom(newCount) {
   nameForm.addEventListener("submit", handleNicknameSubmit);
 }
 
-function handleRoomSubmit(e) {
+async function initCall() {
+  await getMedia();
+  makeConnection();
+}
+
+async function handleRoomSubmit(e) {
   e.preventDefault();
+  await initCall();
   const nameInput = form.querySelector("#nameInput");
   const roomInput = form.querySelector("#roomInput");
   socket.emit("enter_room", roomInput.value, nameInput.value, showRoom);
@@ -78,4 +91,14 @@ socket.on("room_change", (rooms) => {
 
 socket.on("nickname", (previousNickname, nickname) => {
   addMessage(`${previousNickname} changed name to ${nickname}`);
+});
+
+socket.on("rotate", () => {
+  const peerFace = document.getElementById("peerFace");
+  if (peerRotated) {
+    peerFace.style.transform = "rotateY(0)";
+  } else {
+    peerFace.style.transform = "rotateY(180deg)";
+  }
+  peerRotated = !peerRotated;
 });

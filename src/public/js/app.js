@@ -9,5 +9,4 @@ export const muteBtn = document.getElementById("mute");
 export const cameraBtn = document.getElementById("camera");
 export const rotateYBtn = document.getElementById("rotateY");
 export const cameraSelect = document.getElementById("cameras");
-export const SpeakerSelect = document.getElementById("speakers");
-export const MicSelect = document.getElementById("mics");
+export const callDiv = document.getElementById("call");

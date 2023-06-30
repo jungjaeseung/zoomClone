@@ -9,20 +9,18 @@ html(lang="ko")
         header 
             h1 Zoom Clone
         main
-            div#myStream
-                video#myFace(autoplay, playsinline, width="400", height="400")
+            div#call
                 div
-                    button#mute Unmute
-                    button#camera Cam On
-                    button#rotateY Mirror
-                div
-                    select#cameras
-                        option(value="device") Face Camera
-                    //- select#speakers
-                    //-    option(value="device") Speaker
-                    //- select#mics
-                    //-    option(value="device") Mic
-
+                    video#myFace(autoplay, playsinline, width="400", height="400")
+                    video#peerFace(autoplay, playsinline, width="400", height="400")
+                    div
+                        button#mute Mute
+                        button#camera Cam Off
+                        button#rotateY Mirror
+                    div
+                        select#cameras
+                        //- select#speakers
+                        //- select#mics
             div#welcome
                 form
                     input#nameInput(placeholder="name", type="text")
